@@ -14,6 +14,7 @@ import argparse
 import sys
 from copy import deepcopy
 from pathlib import Path
+import yaml
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[1]  # YOLOv5 root directory
@@ -329,7 +330,7 @@ class TFModel:
             import yaml  # for torch hub
             self.yaml_file = Path(cfg).name
             with open(cfg) as f:
-                self.yaml = yaml.load(f, Loader=yaml.FullLoader)  # model dict
+                self.yaml = yaml.load(f, Loader=yaml.SafeLoader)  # model dict
 
         # Define model
         if nc and nc != self.yaml['nc']:
