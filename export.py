@@ -244,7 +244,7 @@ def export_tfjs(keras_model, im, file, prefix=colorstr('TensorFlow.js:')):
 
         cmd = f"tensorflowjs_converter --input_format=tf_frozen_model " \
               f"--output_node_names='Identity,Identity_1,Identity_2,Identity_3' {f_pb} {f}"
-        subprocess.run(cmd, shell=True)
+        subprocess.run(cmd, shell=False)
 
         json = open(f_json).read()
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order

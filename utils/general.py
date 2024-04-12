@@ -235,9 +235,9 @@ def check_git_status():
     assert check_online(), 'skipping check (offline)' + msg
 
     cmd = 'git fetch && git config --get remote.origin.url'
-    url = check_output(cmd, shell=True, timeout=5).decode().strip().rstrip('.git')  # git fetch
-    branch = check_output('git rev-parse --abbrev-ref HEAD', shell=True).decode().strip()  # checked out
-    n = int(check_output(f'git rev-list {branch}..origin/master --count', shell=True))  # commits behind
+    url = check_output(cmd, shell=False, timeout=5).decode().strip().rstrip('.git')  # git fetch
+    branch = check_output('git rev-parse --abbrev-ref HEAD', shell=False).decode().strip()  # checked out
+    n = int(check_output(f'git rev-list {branch}..origin/master --count', shell=False))  # commits behind
     if n > 0:
         s = f"⚠️ YOLOv5 is out of date by {n} commit{'s' * (n > 1)}. Use `git pull` or `git clone {url}` to update."
     else:
@@ -285,7 +285,7 @@ def check_requirements(requirements=ROOT / 'requirements.txt', exclude=(), insta
                 print(f"{s}, attempting auto-update...")
                 try:
                     assert check_online(), f"'pip install {r}' skipped (offline)"
-                    print(check_output(f"pip install '{r}'", shell=True).decode())
+                    print(check_output(f"pip install '{r}'", shell=False).decode())
                     n += 1
                 except Exception as e:
                     print(f'{prefix} {e}')
