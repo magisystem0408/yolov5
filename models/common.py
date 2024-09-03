@@ -14,7 +14,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
-import requests
 import torch
 import torch.nn as nn
 from PIL import Image
@@ -25,6 +24,7 @@ from utils.general import (LOGGER, check_requirements, check_suffix, check_versi
                            make_divisible, non_max_suppression, scale_coords, xywh2xyxy, xyxy2xywh)
 from utils.plots import Annotator, colors, save_one_box
 from utils.torch_utils import copy_attr, time_sync
+from security import safe_requests
 
 
 def autopad(k, p=None):  # kernel, padding
@@ -489,7 +489,7 @@ class AutoShape(nn.Module):
         for i, im in enumerate(imgs):
             f = f'image{i}'  # filename
             if isinstance(im, (str, Path)):  # filename or uri
-                im, f = Image.open(requests.get(im, stream=True).raw if str(im).startswith('http') else im), im
+                im, f = Image.open(safe_requests.get(im, stream=True).raw if str(im).startswith('http') else im), im
                 im = np.asarray(exif_transpose(im))
             elif isinstance(im, Image.Image):  # PIL Image
                 im, f = np.asarray(exif_transpose(im)), getattr(im, 'filename', f) or f
