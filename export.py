@@ -45,6 +45,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 from torch.utils.mobile_optimizer import optimize_for_mobile
+from security import safe_command
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -244,7 +245,7 @@ def export_tfjs(keras_model, im, file, prefix=colorstr('TensorFlow.js:')):
 
         cmd = f"tensorflowjs_converter --input_format=tf_frozen_model " \
               f"--output_node_names='Identity,Identity_1,Identity_2,Identity_3' {f_pb} {f}"
-        subprocess.run(cmd, shell=True)
+        safe_command.run(subprocess.run, cmd, shell=True)
 
         json = open(f_json).read()
         with open(f_json, 'w') as j:  # sort JSON Identity_* in ascending order
