@@ -7,7 +7,6 @@ import glob
 import hashlib
 import json
 import os
-import random
 import shutil
 import time
 from itertools import repeat
@@ -29,6 +28,7 @@ from utils.augmentations import Albumentations, augment_hsv, copy_paste, letterb
 from utils.general import (LOGGER, NUM_THREADS, check_dataset, check_requirements, check_yaml, clean_str,
                            segments2boxes, xyn2xy, xywh2xyxy, xywhn2xyxy, xyxy2xywhn)
 from utils.torch_utils import torch_distributed_zero_first
+import secrets
 
 # Parameters
 HELP_URL = 'https://github.com/ultralytics/yolov5/wiki/Train-Custom-Data'
@@ -553,15 +553,15 @@ class LoadImagesAndLabels(Dataset):
         index = self.indices[index]  # linear, shuffled, or image_weights
 
         hyp = self.hyp
-        mosaic = self.mosaic and random.random() < hyp['mosaic']
+        mosaic = self.mosaic and secrets.SystemRandom().random() < hyp['mosaic']
         if mosaic:
             # Load mosaic
             img, labels = load_mosaic(self, index)
             shapes = None
 
             # MixUp augmentation
-            if random.random() < hyp['mixup']:
-                img, labels = mixup(img, labels, *load_mosaic(self, random.randint(0, self.n - 1)))
+            if secrets.SystemRandom().random() < hyp['mixup']:
+                img, labels = mixup(img, labels, *load_mosaic(self, secrets.SystemRandom().randint(0, self.n - 1)))
 
         else:
             # Load image
@@ -597,13 +597,13 @@ class LoadImagesAndLabels(Dataset):
             augment_hsv(img, hgain=hyp['hsv_h'], sgain=hyp['hsv_s'], vgain=hyp['hsv_v'])
 
             # Flip up-down
-            if random.random() < hyp['flipud']:
+            if secrets.SystemRandom().random() < hyp['flipud']:
                 img = np.flipud(img)
                 if nl:
                     labels[:, 2] = 1 - labels[:, 2]
 
             # Flip left-right
-            if random.random() < hyp['fliplr']:
+            if secrets.SystemRandom().random() < hyp['fliplr']:
                 img = np.fliplr(img)
                 if nl:
                     labels[:, 1] = 1 - labels[:, 1]
@@ -640,7 +640,7 @@ class LoadImagesAndLabels(Dataset):
         s = torch.tensor([[1, 1, 0.5, 0.5, 0.5, 0.5]])  # scale
         for i in range(n):  # zidane torch.zeros(16,3,720,1280)  # BCHW
             i *= 4
-            if random.random() < 0.5:
+            if secrets.SystemRandom().random() < 0.5:
                 im = F.interpolate(img[i].unsqueeze(0).float(), scale_factor=2.0, mode='bilinear', align_corners=False)[
                     0].type(img[i].type())
                 l = label[i]
@@ -682,9 +682,9 @@ def load_mosaic(self, index):
     # YOLOv5 4-mosaic loader. Loads 1 image + 3 random images into a 4-image mosaic
     labels4, segments4 = [], []
     s = self.img_size
-    yc, xc = (int(random.uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
-    indices = [index] + random.choices(self.indices, k=3)  # 3 additional image indices
-    random.shuffle(indices)
+    yc, xc = (int(secrets.SystemRandom().uniform(-x, 2 * s + x)) for x in self.mosaic_border)  # mosaic center x, y
+    indices = [index] + secrets.SystemRandom().choices(self.indices, k=3)  # 3 additional image indices
+    secrets.SystemRandom().shuffle(indices)
     for i, index in enumerate(indices):
         # Load image
         img, _, (h, w) = load_image(self, index)
@@ -739,8 +739,8 @@ def load_mosaic9(self, index):
     # YOLOv5 9-mosaic loader. Loads 1 image + 8 random images into a 9-image mosaic
     labels9, segments9 = [], []
     s = self.img_size
-    indices = [index] + random.choices(self.indices, k=8)  # 8 additional image indices
-    random.shuffle(indices)
+    indices = [index] + secrets.SystemRandom().choices(self.indices, k=8)  # 8 additional image indices
+    secrets.SystemRandom().shuffle(indices)
     for i, index in enumerate(indices):
         # Load image
         img, _, (h, w) = load_image(self, index)
@@ -783,7 +783,7 @@ def load_mosaic9(self, index):
         hp, wp = h, w  # height, width previous
 
     # Offset
-    yc, xc = (int(random.uniform(0, s)) for _ in self.mosaic_border)  # mosaic center x, y
+    yc, xc = (int(secrets.SystemRandom().uniform(0, s)) for _ in self.mosaic_border)  # mosaic center x, y
     img9 = img9[yc:yc + 2 * s, xc:xc + 2 * s]
 
     # Concat/clip labels
@@ -869,8 +869,8 @@ def autosplit(path='../datasets/coco128/images', weights=(0.9, 0.1, 0.0), annota
     path = Path(path)  # images dir
     files = sorted(x for x in path.rglob('*.*') if x.suffix[1:].lower() in IMG_FORMATS)  # image files only
     n = len(files)  # number of files
-    random.seed(0)  # for reproducibility
-    indices = random.choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
+    secrets.SystemRandom().seed(0)  # for reproducibility
+    indices = secrets.SystemRandom().choices([0, 1, 2], weights=weights, k=n)  # assign each image to a split
 
     txt = ['autosplit_train.txt', 'autosplit_val.txt', 'autosplit_test.txt']  # 3 txt files
     [(path.parent / x).unlink(missing_ok=True) for x in txt]  # remove existing

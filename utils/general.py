@@ -9,7 +9,6 @@ import logging
 import math
 import os
 import platform
-import random
 import re
 import shutil
 import signal
@@ -31,6 +30,7 @@ import yaml
 
 from utils.downloads import gsutil_getsize
 from utils.metrics import box_iou, fitness
+import secrets
 
 # Settings
 FILE = Path(__file__).resolve()
@@ -123,7 +123,7 @@ def init_seeds(seed=0):
     # Initialize random number generator (RNG) seeds https://pytorch.org/docs/stable/notes/randomness.html
     # cudnn seed 0 settings are slower and more reproducible, else faster and less reproducible
     import torch.backends.cudnn as cudnn
-    random.seed(seed)
+    secrets.SystemRandom().seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     cudnn.benchmark, cudnn.deterministic = (False, True) if seed == 0 else (True, False)
